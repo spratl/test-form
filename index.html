@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="fonts.js"></script>
 <style>
 :root{
@@ -184,6 +185,12 @@ footer{text-align:center; font-size:11px; color:#999; padding:20px;}
 .preview-header{display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-bottom:1px solid var(--line); flex:none;}
 .preview-header h3{margin:0; font-family:var(--serif); font-weight:600; color:var(--navy); font-size:16px;}
 .preview-frame{flex:1; border:none; width:100%; background:#666;}
+.preview-pages{flex:1; overflow-y:auto; background:#5b5b58; padding:20px 16px; display:flex; flex-direction:column; align-items:center; gap:18px;}
+.preview-pages canvas{max-width:100%; height:auto; box-shadow:0 3px 12px rgba(0,0,0,0.35); background:#fff; border-radius:2px;}
+.preview-loading, .preview-error{color:#f2f0e8; font-size:13.5px; text-align:center; margin-top:40px;}
+.preview-open-bar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 20px; background:#FBF8EE; border-bottom:1px solid var(--line); flex:none; flex-wrap:wrap;}
+.preview-open-bar span{font-size:12px; color:#666; max-width:400px;}
+.preview-open-bar .btn{white-space:nowrap; padding:8px 14px; font-size:13px;}
 .preview-footer{padding:14px 20px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:16px; flex:none; flex-wrap:wrap;}
 .preview-footer p{margin:0; font-size:12.5px; color:#666; max-width:420px;}
 </style>
@@ -388,7 +395,7 @@ footer{text-align:center; font-size:11px; color:#999; padding:20px;}
           <thead><tr><th>Name of Referee</th><th>Occupation</th><th>Address / Phone</th></tr></thead>
           <tbody></tbody>
         </table>
-        <button type="button" class="btn-add" data-add="refTable" data-cols="name,occupation,contact" data-default="2" style="display:none;">+ Add row</button>
+        <button type="button" class="btn-add" data-add="refTable" data-cols="name,occupation,contact" data-default="2" data-required-rows="2" style="display:none;">+ Add row</button>
       </div>
       <div class="field">
         <label>Two Responsible Persons of Your Locality to Whom You Are Known</label>
@@ -525,7 +532,13 @@ footer{text-align:center; font-size:11px; color:#999; padding:20px;}
       <h3>Review Your Application</h3>
       <button type="button" class="btn btn-secondary" id="closePreviewBtn">← Back to Edit</button>
     </div>
-    <iframe id="previewFrame" class="preview-frame" title="Application preview"></iframe>
+    <div id="previewFallbackBar" class="preview-open-bar" style="display:none;">
+      <span>The in-page preview couldn't load — use this instead:</span>
+      <a id="previewOpenLink" class="btn btn-primary" href="#" target="_blank" rel="noopener">📄 Open PDF in New Tab</a>
+    </div>
+    <div id="previewPages" class="preview-pages">
+      <p class="preview-loading" id="previewLoading">Rendering your application…</p>
+    </div>
     <div class="preview-footer">
       <p>Check every page carefully — especially your photo and contact details. Go back to edit if anything needs fixing.</p>
       <button type="button" class="btn-submit" id="confirmSendBtn">Confirm &amp; Download PDF</button>

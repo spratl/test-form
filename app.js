@@ -147,17 +147,17 @@ document.querySelectorAll('[data-remgroup]').forEach(btn => {
   });
 });
 
-// ---------- Auto sentence-case free-text input (first letter capital, rest lower-case) ----------
+// ---------- Auto title-case free-text input (every word capitalized, rest lower-case) ----------
 document.getElementById('dataForm').addEventListener('input', (e) => {
   const el = e.target;
   const isFreeText = (el.tagName === 'TEXTAREA') || (el.tagName === 'INPUT' && el.type === 'text');
   if (!isFreeText) return;
   const val = el.value;
   if (!val) return;
-  const sentenceCased = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
-  if (sentenceCased !== val) {
+  const titleCased = toTitleCase(val);
+  if (titleCased !== val) {
     const start = el.selectionStart, end = el.selectionEnd;
-    el.value = sentenceCased;
+    el.value = titleCased;
     if (start !== null && el.setSelectionRange) el.setSelectionRange(start, end);
   }
 });
@@ -258,6 +258,14 @@ photoInput.addEventListener('change', (e) => {
   }
 });
 
+// Capitalizes the first letter of every word (title case) — used both live as the candidate
+// types and again here as a safety net when building the PDF data, so formatting is correct
+// even if a field's value got in some other way (paste, autofill, or a mobile browser that
+// doesn't fire the same input events while typing).
+function toTitleCase(str){
+  return String(str).toLowerCase().replace(/(^|[\s\-'"(\/])([a-z])/g, (m, sep, ch) => sep + ch.toUpperCase());
+}
+
 // ---------- Data collection ----------
 function collectFormData(){
   const form = document.getElementById('dataForm');
@@ -265,7 +273,8 @@ function collectFormData(){
   // simple named fields
   form.querySelectorAll('input[name], select[name], textarea[name]').forEach(el => {
     if (el.name.includes('__')) return; // handled separately as table rows
-    data[el.name] = el.value;
+    const isFreeText = (el.tagName === 'TEXTAREA') || (el.tagName === 'INPUT' && el.type === 'text');
+    data[el.name] = isFreeText ? toTitleCase(el.value) : el.value;
   });
   // repeating tables
   const tableIds = new Set();
@@ -276,7 +285,7 @@ function collectFormData(){
       const row = {};
       let hasValue = false;
       tr.querySelectorAll('input, select').forEach(inp => {
-        row[inp.dataset.col] = inp.value;
+        row[inp.dataset.col] = inp.tagName === 'INPUT' ? toTitleCase(inp.value) : inp.value;
         if (inp.value.trim()) hasValue = true;
       });
       if (hasValue) rows.push(row);
@@ -1274,7 +1283,53 @@ function pdfDrawOfficeUseOnlyPage(doc){
 }
 
 // ---------- Submit / Preview flow ----------
-let pendingDoc = null, pendingFileName = null, pendingBlobUrl = null;
+let pendingDoc = null, pendingFileName = null, pendingBlobUrl = null, pendingRenderToken = 0;
+
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+// Renders every page of the generated PDF as an in-page <canvas>, using pdf.js — this draws the
+// PDF ourselves in JS rather than handing it to the browser's native PDF viewer, so the preview
+// works the same way on every device (a native viewer via <iframe>/blob URL is unreliable on many
+// mobile browsers, especially inside an installed/standalone PWA, and can silently download the
+// file instead of showing it). Falls back to the "Open PDF in New Tab" link if anything goes wrong.
+async function renderPdfPreview(doc){
+  const container = document.getElementById('previewPages');
+  const fallbackBar = document.getElementById('previewFallbackBar');
+  const myToken = ++pendingRenderToken;
+  container.innerHTML = '<p class="preview-loading">Rendering your application…</p>';
+  fallbackBar.style.display = 'none';
+
+  try {
+    if (!window.pdfjsLib) throw new Error('pdf.js failed to load');
+    const arrayBuffer = doc.output('arraybuffer');
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    if (myToken !== pendingRenderToken) return; // superseded by a newer preview click
+    container.innerHTML = '';
+    const dpr = window.devicePixelRatio || 1;
+    const targetWidth = Math.max(280, Math.min(container.clientWidth - 4, 860));
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++){
+      const page = await pdf.getPage(pageNum);
+      if (myToken !== pendingRenderToken) return;
+      const unscaledViewport = page.getViewport({ scale: 1 });
+      const scale = (targetWidth / unscaledViewport.width) * dpr;
+      const viewport = page.getViewport({ scale });
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      canvas.style.width = (viewport.width / dpr) + 'px';
+      canvas.style.height = (viewport.height / dpr) + 'px';
+      container.appendChild(canvas);
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      if (myToken !== pendingRenderToken) return;
+    }
+  } catch (e){
+    console.error('In-page PDF preview failed, showing the Open-in-new-tab fallback instead:', e);
+    container.innerHTML = '<p class="preview-error">We couldn\u2019t render the in-page preview on this device.</p>';
+    fallbackBar.style.display = 'flex';
+  }
+}
 
 document.getElementById('submitBtn').addEventListener('click', async () => {
   const statusEl = document.getElementById('statusMsg');
@@ -1328,9 +1383,10 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     pendingFileName = fileName;
     if (pendingBlobUrl) URL.revokeObjectURL(pendingBlobUrl);
     pendingBlobUrl = doc.output('bloburl');
+    document.getElementById('previewOpenLink').href = pendingBlobUrl;
 
-    document.getElementById('previewFrame').src = pendingBlobUrl;
     document.getElementById('previewOverlay').classList.add('active');
+    renderPdfPreview(doc);
   } catch (e){
     console.error(e);
     errEl.textContent = 'Something went wrong generating the PDF. Please try again, or contact HR directly if the problem persists.';
