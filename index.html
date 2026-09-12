@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPR Auto Technologies Ltd. — Personal Data Form</title>
+<meta name="theme-color" content="#1a2744">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="fonts.js"></script>
+<style>
+:root{
+  --navy:#1a2744;
+  --navy-deep:#101a30;
+  --gold:#c9a24b;
+  --gold-soft:#e8d9b0;
+  --paper:#f7f5f0;
+  --ink:#232323;
+  --line:#d8d3c6;
+  --danger:#a3372c;
+  --ok:#3d6b4f;
+  --radius:3px;
+  --serif: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --sans: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+  font-size:15px; line-height:1.5;
+}
+header{
+  background:#fff; color:var(--navy); padding:16px 24px;
+  border-bottom:3px solid var(--gold);
+}
+.brand{display:flex; align-items:center; gap:16px; max-width:1180px; margin:0 auto;}
+.brand-mark{
+  flex:none; display:flex; align-items:center; justify-content:center;
+}
+.brand-mark img{height:44px; width:auto; display:block;}
+.brand-mark-right{margin-left:auto;}
+.brand-mark-right img{height:40px;}
+.brand h1{font-family:var(--serif); font-weight:600; font-size:19px; margin:0; letter-spacing:0.2px; color:var(--navy);}
+.brand p{margin:2px 0 0; font-size:11.5px; color:#8a7434; font-weight:500; letter-spacing:1.2px; text-transform:uppercase;}
+
+.progress-wrap{background:#fbf8ee; border-bottom:1px solid var(--line);}
+.progress-track{max-width:1180px;margin:0 auto;display:flex;overflow-x:auto;padding:0 24px;}
+.progress-step{
+  flex:none; font-size:11.5px; color:#8a8676; padding:9px 12px; border-bottom:3px solid transparent;
+  cursor:pointer; white-space:nowrap; font-weight:600; letter-spacing:0.3px;
+}
+.progress-step.active{color:var(--navy); border-bottom-color:var(--gold);}
+.progress-step.done{color:#5a5744;}
+
+main{max-width:1180px;margin:0 auto;padding:24px 24px 80px;}
+
+.section{
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+  padding:22px 22px 8px; margin-bottom:18px; display:none;
+}
+.section.active{display:block;}
+.section h2{
+  font-family:var(--serif); font-size:19px; margin:0 0 4px; color:var(--navy);
+  border-bottom:2px solid var(--gold); padding-bottom:8px;
+}
+.section .sub{font-size:12.5px;color:#777;margin:4px 0 18px;}
+
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:12.5px; font-weight:700; color:#4a4a4a; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:5px;}
+.field label .opt{text-transform:none; font-weight:400; color:#999; letter-spacing:0;}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],textarea,select{
+  width:100%; padding:9px 10px; border:1px solid #c9c4b6; border-radius:var(--radius);
+  font-family:var(--sans); font-size:14.5px; background:#fffdf9;
+}
+textarea{resize:vertical; min-height:60px;}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold);}
+.field-missing{background:#FFF7B0 !important; border-color:#E0C200 !important;}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+@media (max-width:600px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+table.rep{width:100%; border-collapse:collapse; margin-bottom:6px;}
+table.rep th{
+  background:#fbf8ee; color:var(--navy); font-size:11.5px; text-transform:uppercase;
+  padding:7px 6px; text-align:left; letter-spacing:0.3px; border-bottom:1.5px solid var(--gold);
+}
+table.rep td{padding:5px 5px; border-bottom:1px solid var(--line); vertical-align:top;}
+table.rep input, table.rep select{padding:6px 7px; font-size:13.5px;}
+.row-actions{margin:6px 0 20px;}
+.btn-add{
+  background:none;border:1px dashed var(--navy); color:var(--navy); padding:6px 12px;
+  font-size:12.5px; border-radius:var(--radius); cursor:pointer; font-weight:600;
+}
+.btn-add:hover{background:#eef1f6;}
+.remove-row{background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;line-height:1;padding:4px;}
+
+.photo-box{
+  display:flex; align-items:center; gap:18px; margin-bottom:18px; flex-wrap:wrap;
+}
+.photo-preview{
+  width:110px;height:130px;border:2px solid var(--line); background:#f0eee6;
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:#999;
+  border-radius:var(--radius); overflow:hidden; flex:none;
+}
+.photo-preview img{width:100%;height:100%;object-fit:cover;}
+.photo-controls input[type=file]{display:none;}
+.photo-btn{
+  background:var(--navy); color:#fff; padding:9px 16px; border-radius:var(--radius);
+  font-size:13px; font-weight:600; cursor:pointer; display:inline-block; border:none;
+}
+.photo-hint{font-size:11.5px;color:#888; margin-top:6px; max-width:260px;}
+
+.consent-box{
+  background:#fbf8ee; border:1px solid var(--gold); border-radius:var(--radius);
+  padding:16px 18px; font-size:13px; color:#3a3524; line-height:1.6; margin-bottom:16px;
+}
+.consent-box h3{margin:0 0 8px; font-family:var(--serif); font-size:15px; color:var(--navy);}
+.consent-check{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; font-weight:600; margin-top:10px;}
+.consent-check input{width:18px;height:18px;margin-top:2px; flex:none;}
+
+.nav-buttons{
+  display:flex; justify-content:space-between; padding:16px 22px; margin-top:-4px;
+}
+.btn{
+  padding:11px 22px; border-radius:var(--radius); font-size:13.5px; font-weight:700;
+  cursor:pointer; border:1px solid transparent; letter-spacing:0.3px;
+}
+.btn-primary{background:var(--navy); color:#fff;}
+.btn-primary:hover{background:var(--navy-deep);}
+.btn-secondary{background:none;border-color:#bbb; color:#555;}
+.btn-secondary:hover{background:#f0f0ec;}
+.btn-primary:disabled{background:#9aa5bc;cursor:not-allowed;}
+
+.final-actions{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  padding:24px;text-align:center;
+}
+.final-actions h2{font-family:var(--serif);color:var(--navy);margin-top:0;}
+.btn-submit{
+  background:var(--gold); color:var(--navy-deep); font-size:15px; padding:13px 30px;
+  border:none; border-radius:var(--radius); font-weight:800; cursor:pointer; letter-spacing:0.4px;
+}
+.btn-submit:hover{background:#b78f38;}
+.status-msg{margin-top:14px; font-size:13px; color:var(--ok); display:none;}
+.err-msg{margin-top:14px;font-size:13px;color:var(--danger);display:none;}
+
+footer{text-align:center; font-size:11px; color:#999; padding:20px;}
+
+.install-banner{
+  display:none; background:var(--gold-soft); color:var(--navy); font-size:12.5px;
+  padding:8px 20px; text-align:center;
+}
+.timestamp-display{
+  padding:9px 10px; border:1px solid #c9c4b6; border-radius:var(--radius);
+  background:#fbf8ee; color:#555; font-size:14.5px; font-family:var(--sans);
+}
+.required:after{content:" *"; color:var(--danger);}
+
+.rem-group{margin-bottom:20px; border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px 18px; background:#fdfcfa;}
+.rem-group-title{font-family:var(--serif); font-weight:600; font-size:15px; color:var(--navy); margin:0 0 12px; padding-bottom:6px; border-bottom:2px solid var(--gold);}
+.rem-static-rows{display:flex; flex-direction:column; gap:10px; margin-bottom:6px;}
+.rem-row{display:grid; grid-template-columns:1fr 170px; align-items:center; gap:12px;}
+.rem-row label{font-size:12.5px; font-weight:700; color:#4a4a4a; text-transform:uppercase; letter-spacing:0.3px;}
+.rem-row input{padding:8px 10px; width:100%;}
+.rem-row-header{padding-bottom:2px;}
+.rem-amount-head{font-size:11px; font-weight:700; color:#4a4a4a; text-transform:uppercase; letter-spacing:0.3px; text-align:left; padding-left:2px;}
+.rem-extra-rows{display:flex; flex-direction:column; gap:10px;}
+.rem-row-added{display:grid; grid-template-columns:1fr 170px auto; align-items:center; gap:12px;}
+.btn-add-inline{
+  background:none; border:none; color:var(--navy); font-size:12.5px; font-weight:700;
+  cursor:pointer; padding:8px 0 0; text-decoration:underline; text-underline-offset:2px;
+}
+.btn-add-inline:hover{color:var(--gold);}
+@media (max-width:600px){.rem-row{grid-template-columns:1fr;} .rem-row-added{grid-template-columns:1fr;}}
+
+.preview-overlay{display:none; position:fixed; inset:0; background:rgba(16,16,20,0.78); z-index:1000; align-items:center; justify-content:center; padding:20px;}
+.preview-overlay.active{display:flex;}
+.preview-panel{background:#fff; width:100%; max-width:920px; height:92vh; border-radius:6px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.3);}
+.preview-header{display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-bottom:1px solid var(--line); flex:none;}
+.preview-header h3{margin:0; font-family:var(--serif); font-weight:600; color:var(--navy); font-size:16px;}
+.preview-frame{flex:1; border:none; width:100%; background:#666;}
+.preview-footer{padding:14px 20px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:16px; flex:none; flex-wrap:wrap;}
+.preview-footer p{margin:0; font-size:12.5px; color:#666; max-width:420px;}
+</style>
+</head>
+<body>
+
+<div class="install-banner" id="installBanner">Tip: use your phone/browser's "Add to Home Screen" option to install this form for offline use.</div>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark"><img src="logo.png" alt="SPR Auto Technologies Ltd."></div>
+    <div>
+      <h1>SPR Auto Technologies Ltd.</h1>
+      <p>Personal Data Form — Candidate Application</p>
+    </div>
+    <div class="brand-mark brand-mark-right"><img src="logo2.png" alt="Shriram Group"></div>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-track" id="progressTrack"></div>
+</div>
+
+<main>
+  <form id="dataForm" autocomplete="off">
+
+    <!-- SECTION 0: Basic + Photo -->
+    <section class="section" data-step="0">
+      <h2>Applicant &amp; Photograph</h2>
+      <p class="sub">This information appears on the cover of your application. Your progress saves automatically in this browser, so you can close this tab and pick up where you left off.</p>
+      <div class="grid2">
+        <div class="field"><label class="required">Full Name</label><input type="text" name="coverName" required></div>
+        <div class="field"><label>Post Applied For</label><input type="text" name="postApplied"></div>
+      </div>
+      <div class="photo-box">
+        <div class="photo-preview" id="photoPreview">No photo</div>
+        <div class="photo-controls">
+          <label class="photo-btn" for="photoInput">Upload Photo</label>
+          <input type="file" id="photoInput" accept="image/*">
+          <p class="photo-hint">Passport-style photo, JPG/PNG. Automatically resized before sending — no need to compress it yourself.</p>
+        </div>
+      </div>
+      <div class="field" style="margin-top:4px;">
+        <label>Ref <span class="opt">(name of the person who recommended your candidature, if any)</span></label>
+        <input type="text" name="referredBy">
+      </div>
+    </section>
+
+    <!-- SECTION 1: Personal Particulars -->
+    <section class="section" data-step="1">
+      <h2>Personal Particulars</h2>
+      <div class="grid3">
+        <div class="field"><label class="required">Surname</label><input type="text" name="surname" required></div>
+        <div class="field"><label class="required">First Name</label><input type="text" name="firstName" required></div>
+        <div class="field"><label>Middle Name</label><input type="text" name="middleName"></div>
+      </div>
+      <div class="field"><label class="required">Present Address</label><textarea name="presentAddress" required></textarea></div>
+      <div class="grid2">
+        <div class="field"><label class="required">Mobile</label><input type="tel" name="phoneResidence" required></div>
+        <div class="field"><label>Alternate Mobile</label><input type="tel" name="phoneMobile"></div>
+      </div>
+      <div class="field"><label class="required">Permanent Address</label><textarea name="permanentAddress" required></textarea></div>
+      <div class="field"><label class="required">Email</label><input type="email" name="email" required></div>
+
+      <div class="grid2">
+        <div class="field"><label class="required">Emergency Contact Person — Relation &amp; Name</label><input type="text" name="emergencyContactName" required></div>
+        <div class="field"><label class="required">Emergency Contact — Mobile Number</label><input type="tel" name="emergencyContactMobile" required></div>
+      </div>
+
+      <div class="grid3">
+        <div class="field"><label class="required">Mother's Name</label><input type="text" name="motherName" required></div>
+        <div class="field"><label class="required">Father's Name</label><input type="text" name="fatherName" required></div>
+        <div class="field"><label>Spouse's Name</label><input type="text" name="spouseName"></div>
+      </div>
+
+      <div class="field">
+        <label>Places resided for more than one year during the last 5 years</label>
+        <table class="rep" id="residenceTable">
+          <thead><tr><th style="width:11%">From</th><th style="width:11%">To</th><th>Address in Full</th><th style="width:15%">Reason for Change</th><th>Referee (Name &amp; Address)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="residenceTable" data-cols="from,to,address,reason,referee" data-default="5">+ Add row</button>
+      </div>
+
+      <div class="grid3">
+        <div class="field"><label class="required">Date of Birth</label><input type="date" name="dob" id="dobInput" required></div>
+        <div class="field"><label>Age <span class="opt">(auto-calculated)</span></label><input type="number" name="age" id="ageInput" min="0" readonly style="background:#f0ede3; color:#555;"></div>
+        <div class="field"><label>Place of Birth</label><input type="text" name="placeOfBirth"></div>
+      </div>
+      <div class="field"><label>Place of Origin</label><input type="text" name="placeOfOrigin"></div>
+
+      <div class="field">
+        <label>Family Details / Dependents</label>
+        <table class="rep" id="familyTable">
+          <thead><tr><th>Relationship</th><th style="width:15%">Age</th><th>Occupation / Reason for Dependency</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="familyTable" data-cols="relationship,age,occupation" data-select-cols="relationship" data-col-options='{"relationship":["Father","Mother","Spouse","Son","Daughter","In-Laws","Other"]}' data-default="5">+ Add row</button>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Other Particulars -->
+    <section class="section" data-step="2">
+      <h2>Other Particulars</h2>
+      <div class="field"><label>Source / Amount of Any Other Income</label><textarea name="otherIncome"></textarea></div>
+      <div class="field">
+        <label>Membership of Social, Religious, Cultural or Political Organisation</label>
+        <table class="rep" id="orgTable">
+          <thead><tr><th>Name of Organisation</th><th>Nature of Your Association</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="orgTable" data-cols="org,nature" data-default="5">+ Add row</button>
+      </div>
+      <div class="field"><label>Court Proceedings <span class="opt">(if involved in any, give particulars)</span></label><textarea name="courtProceedings"></textarea></div>
+      <div class="grid2">
+        <div class="field"><label>Height (Cms)</label><input type="number" name="height"></div>
+        <div class="field"><label>Weight (Kgs)</label><input type="number" name="weight"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Last Prolonged / Serious Illness <span class="opt">(if any)</span></label><input type="text" name="illness"></div>
+        <div class="field"><label>Physical Disability <span class="opt">(if any)</span></label><input type="text" name="disability"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Qualifications -->
+    <section class="section" data-step="3">
+      <h2>Qualifications</h2>
+      <div class="field">
+        <label>Educational History <span class="opt">(High School onwards — indicate gaps clearly)</span></label>
+        <table class="rep" id="eduTable">
+          <thead><tr><th>Institution</th><th>University</th><th style="width:9%">Entering</th><th style="width:9%">Leaving</th><th>Degree / Exam</th><th>Main Subjects</th><th style="width:8%">Marks %</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="eduTable" data-cols="institution,university,entering,leaving,degree,subjects,marks" data-default="6" data-required-rows="2">+ Add row</button>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Professional Societies</label><textarea name="profSocieties"></textarea></div>
+        <div class="field"><label>Honours / Scholarships</label><textarea name="honours"></textarea></div>
+        <div class="field"><label>Publications / Paper / Thesis</label><textarea name="publications"></textarea></div>
+      </div>
+      <div class="field">
+        <label>Training Attended <span class="opt">(if any)</span></label>
+        <table class="rep" id="trainingTable">
+          <thead><tr><th>Name of Training</th><th style="width:14%">Duration</th><th>Faculty / Institute</th><th>Brief Content</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="trainingTable" data-cols="name,duration,faculty,content" data-default="2">+ Add row</button>
+      </div>
+      <div class="field">
+        <label>Languages Known</label>
+        <table class="rep" id="langTable">
+          <thead><tr><th>Language</th><th>Speak</th><th>Read</th><th>Write</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="langTable" data-cols="language,speak,read,write" data-select-cols="speak,read,write" data-default="3">+ Add row</button>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Experience -->
+    <section class="section" data-step="4">
+      <h2>Extra-Curricular Activities &amp; Past Employment</h2>
+      <div class="grid2">
+        <div class="field"><label>Literary / Cultural / Arts</label><input type="text" name="ecArts"></div>
+        <div class="field"><label>Social</label><input type="text" name="ecSocial"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Sports</label><input type="text" name="ecSports"></div>
+        <div class="field"><label>Hobbies</label><input type="text" name="ecHobbies"></div>
+      </div>
+      <div class="field">
+        <label>Past Employment <span class="opt">(reverse chronological order; first row = present employer)</span></label>
+        <table class="rep" id="empTable">
+          <thead><tr><th>Employer Name &amp; Address</th><th style="width:8%">From</th><th style="width:8%">To</th><th style="width:9%">Basic Salary</th><th style="width:9%">Total Salary</th><th>Reason for Leaving</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="empTable" data-cols="employer,from,to,basic,total,reason" data-default="6" data-required-rows="1">+ Add row</button>
+      </div>
+      <div class="field">
+        <label>Designation / Scope of Responsibilities <span class="opt">(mention special achievements)</span></label>
+        <table class="rep" id="respTable">
+          <thead><tr><th>Designation / Responsibilities</th><th>Supervisor's Name / Designation</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="respTable" data-cols="responsibilities,supervisor" data-default="6" data-required-rows="1">+ Add row</button>
+      </div>
+    </section>
+
+    <!-- SECTION 5: References -->
+    <section class="section" data-step="5">
+      <h2>References</h2>
+      <div class="field">
+        <label>Two Employees of Any of Our Units Known to You <span class="opt">(if applicable)</span></label>
+        <table class="rep" id="empRefTable">
+          <thead><tr><th>Name</th><th>Rank</th><th>Unit</th><th>Deptt.</th><th>Relationship</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="empRefTable" data-cols="name,rank,unit,dept,relation" data-default="2" style="display:none;">+ Add row</button>
+      </div>
+      <div class="field">
+        <label class="required">Two Referees Not Related to You <span class="opt">(at least one from your line of occupation / present or past employer)</span></label>
+        <table class="rep" id="refTable">
+          <thead><tr><th>Name of Referee</th><th>Occupation</th><th>Address / Phone</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="refTable" data-cols="name,occupation,contact" data-default="2" style="display:none;">+ Add row</button>
+      </div>
+      <div class="field">
+        <label>Two Responsible Persons of Your Locality to Whom You Are Known</label>
+        <table class="rep" id="localTable">
+          <thead><tr><th>Name</th><th>Occupation</th><th>Address / Phone</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn-add" data-add="localTable" data-cols="name,occupation,contact" data-default="2" style="display:none;">+ Add row</button>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Notice Required to Join, if Selected</label><input type="text" name="noticePeriod"></div>
+        <div class="field"><label>Appeared for Test/Interview with Us Earlier?</label>
+          <select name="earlierInterview"><option value="">Select</option><option>Yes</option><option>No</option></select>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>If Yes, Which Company / Unit</label><input type="text" name="earlierCompany"></div>
+        <div class="field"><label>What Position</label><input type="text" name="earlierPosition"></div>
+        <div class="field"><label>When</label><input type="text" name="earlierWhen"></div>
+      </div>
+      <div class="field"><label>How Did You Apply to Us?</label><input type="text" name="howApplied"></div>
+    </section>
+
+    <!-- SECTION 6: Remuneration -->
+    <section class="section" data-step="6">
+      <h2>Present Remuneration / Facilities <span class="opt">(if currently employed)</span></h2>
+
+      <div class="rem-group">
+        <h3 class="rem-group-title">Monthly Salary Slip</h3>
+        <div class="rem-static-rows">
+          <div class="rem-row rem-row-header"><span></span><span class="rem-amount-head">Amount</span></div>
+          <div class="rem-row"><label>Basic</label><input type="text" name="remBasic" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><label>HRA</label><input type="text" name="remHRA" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><label>Conveyance</label><input type="text" name="remConveyance" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><label>Medical Allowance</label><input type="text" name="remMedicalAllowance" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><label>Other Allowances</label><input type="text" name="remOtherAllowances" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><label>PF</label><input type="text" name="remPF" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><input type="text" name="remMonthlyExtra1Particulars" placeholder="Particulars"><input type="text" name="remMonthlyExtra1Amount" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><input type="text" name="remMonthlyExtra2Particulars" placeholder="Particulars"><input type="text" name="remMonthlyExtra2Amount" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><input type="text" name="remMonthlyExtra3Particulars" placeholder="Particulars"><input type="text" name="remMonthlyExtra3Amount" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><input type="text" name="remMonthlyExtra4Particulars" placeholder="Particulars"><input type="text" name="remMonthlyExtra4Amount" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><input type="text" name="remMonthlyExtra5Particulars" placeholder="Particulars"><input type="text" name="remMonthlyExtra5Amount" placeholder="Rs. / Month"></div>
+          <div class="rem-row"><input type="text" name="remMonthlyExtra6Particulars" placeholder="Particulars"><input type="text" name="remMonthlyExtra6Amount" placeholder="Rs. / Month"></div>
+        </div>
+        <div class="rem-extra-rows" id="remMonthlyMoreRows"></div>
+        <button type="button" class="btn-add-inline" data-remgroup="remMonthlyMoreRows" data-amount-placeholder="Rs. / Month">+ Add row</button>
+      </div>
+
+      <div class="rem-group">
+        <h3 class="rem-group-title">Annual Payout</h3>
+        <div class="rem-static-rows">
+          <div class="rem-row rem-row-header"><span></span><span class="rem-amount-head">Amount</span></div>
+          <div class="rem-row"><label>Variable / Performance Pay</label><input type="text" name="remVariablePay" placeholder="Rs. / Annum"></div>
+          <div class="rem-row"><label>Leave Travel Allowance</label><input type="text" name="remLTA" placeholder="Rs. / Annum"></div>
+          <div class="rem-row"><input type="text" name="remAnnualExtra1Particulars" placeholder="Particulars"><input type="text" name="remAnnualExtra1Amount" placeholder="Rs. / Annum"></div>
+          <div class="rem-row"><input type="text" name="remAnnualExtra2Particulars" placeholder="Particulars"><input type="text" name="remAnnualExtra2Amount" placeholder="Rs. / Annum"></div>
+        </div>
+        <div class="rem-extra-rows" id="remAnnualMoreRows"></div>
+        <button type="button" class="btn-add-inline" data-remgroup="remAnnualMoreRows" data-amount-placeholder="Rs. / Annum">+ Add row</button>
+      </div>
+
+      <div class="rem-group">
+        <h3 class="rem-group-title">Reimbursements &amp; Perks</h3>
+        <div class="rem-static-rows">
+          <div class="rem-row rem-row-header"><span></span><span class="rem-amount-head">Amount</span></div>
+          <div class="rem-row"><input type="text" name="remPerksExtra1Particulars" placeholder="Particulars"><input type="text" name="remPerksExtra1Amount" placeholder="Amount"></div>
+          <div class="rem-row"><input type="text" name="remPerksExtra2Particulars" placeholder="Particulars"><input type="text" name="remPerksExtra2Amount" placeholder="Amount"></div>
+          <div class="rem-row"><input type="text" name="remPerksExtra3Particulars" placeholder="Particulars"><input type="text" name="remPerksExtra3Amount" placeholder="Amount"></div>
+          <div class="rem-row"><input type="text" name="remPerksExtra4Particulars" placeholder="Particulars"><input type="text" name="remPerksExtra4Amount" placeholder="Amount"></div>
+        </div>
+        <div class="rem-extra-rows" id="remPerksMoreRows"></div>
+        <button type="button" class="btn-add-inline" data-remgroup="remPerksMoreRows" data-amount-placeholder="Amount">+ Add row</button>
+      </div>
+
+      <div class="rem-group">
+        <h3 class="rem-group-title">Company Car Details</h3>
+        <div class="rem-static-rows">
+          <div class="rem-row rem-row-header"><span></span><span class="rem-amount-head">Amount</span></div>
+          <div class="rem-row"><input type="text" name="remCarExtra1Particulars" placeholder="Particulars"><input type="text" name="remCarExtra1Amount" placeholder="Amount"></div>
+          <div class="rem-row"><input type="text" name="remCarExtra2Particulars" placeholder="Particulars"><input type="text" name="remCarExtra2Amount" placeholder="Amount"></div>
+          <div class="rem-row"><input type="text" name="remCarExtra3Particulars" placeholder="Particulars"><input type="text" name="remCarExtra3Amount" placeholder="Amount"></div>
+          <div class="rem-row"><input type="text" name="remCarExtra4Particulars" placeholder="Particulars"><input type="text" name="remCarExtra4Amount" placeholder="Amount"></div>
+        </div>
+        <div class="rem-extra-rows" id="remCarMoreRows"></div>
+        <button type="button" class="btn-add-inline" data-remgroup="remCarMoreRows" data-amount-placeholder="Amount">+ Add row</button>
+      </div>
+
+      <div class="field"><label>Total Cost to Company <span class="opt">(Rs. / Annum)</span></label><input type="text" name="remTotalCTC"></div>
+    </section>
+
+    <!-- SECTION 7: Declaration & Submit -->
+    <section class="section" data-step="7">
+      <h2>Declaration &amp; Consent</h2>
+      <div class="consent-box">
+        <h3>Declaration</h3>
+        <p>I shall, if and required, take up casual / temporary / permanent duty in the discharge of company assignments anywhere in India or abroad. I certify that the foregoing information is correct and complete to the best of my knowledge and belief and nothing has been concealed. I am not aware of any circumstances which might impair my fitness for employment. If at any time I am found to have concealed any material information or given any false details, my appointment shall be liable to summary termination without notice or compensation. I declare that I am not a relative of any Director/Employee of the company.</p>
+      </div>
+      <div class="consent-box">
+        <h3>Consent for Collection and Processing of Personal Data</h3>
+        <p><strong>I, <span id="consentFullName">________________________</span></strong> consent to SPR Auto Technologies Limited collecting, storing and processing my personal data and information mentioned and submitted in this form including IP Address, Photograph, Compensation details solely for the purpose of evaluation of my candidature for current or future employment opportunities with SPR Auto Technologies Limited or its group companies / subsidiaries and for conducting background verification (where applicable), and sharing relevant details or extracts from this form and my resume with the interview panel. I have provided the information in this form voluntarily and understand that providing incomplete or incorrect data may affect the Company's ability to process my job application and this data will not be shared with third parties except as necessary for the recruitment process or as required by law.</p>
+        <p>I additionally consent to my data being retained beyond this specific hiring process, for consideration against future roles at the Company, for a period not exceeding <strong>12 months</strong> from the date of submission of this consent.</p>
+        <p>I understand that I may withdraw this consent, or request access to, correction of, or erasure of my data (unless I am selected for employment) at any time by writing to the designated Data Protection Officer or HR team and that such withdrawal will not affect the lawfulness of processing carried out before withdrawal.</p>
+        <label class="consent-check"><input type="checkbox" id="consentCheck" required> I have read and agree to the Declaration and the Consent for Collection and Processing of Personal Data above.</label>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Date &amp; Time</label>
+          <div class="timestamp-display" id="timestampDisplay">—</div>
+          <p class="opt" style="margin-top:4px;">Captured automatically when you submit.</p>
+        </div>
+        <div class="field"><label class="required">Location</label><input type="text" name="declLocation" placeholder="City / Location" required></div>
+      </div>
+
+      <div class="final-actions">
+        <h2>Ready to Submit</h2>
+        <p style="font-size:13.5px;color:#555;">You'll be able to preview your completed application as a PDF (including your photo) before saving it — with a chance to go back and make changes.</p>
+        <button type="button" class="btn-submit" id="submitBtn">Preview Application</button>
+        <div class="status-msg" id="statusMsg"></div>
+        <div class="err-msg" id="errMsg"></div>
+      </div>
+    </section>
+
+  </form>
+
+  <div class="nav-buttons">
+    <button type="button" class="btn btn-secondary" id="prevBtn">← Back</button>
+    <button type="button" class="btn btn-primary" id="nextBtn">Next →</button>
+  </div>
+</main>
+
+<div class="preview-overlay" id="previewOverlay">
+  <div class="preview-panel">
+    <div class="preview-header">
+      <h3>Review Your Application</h3>
+      <button type="button" class="btn btn-secondary" id="closePreviewBtn">← Back to Edit</button>
+    </div>
+    <iframe id="previewFrame" class="preview-frame" title="Application preview"></iframe>
+    <div class="preview-footer">
+      <p>Check every page carefully — especially your photo and contact details. Go back to edit if anything needs fixing.</p>
+      <button type="button" class="btn-submit" id="confirmSendBtn">Confirm &amp; Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<footer>SPR Auto Technologies Ltd. — Personal Data Form. Your progress is saved automatically in this browser as you go, and your data stays on your device until you download the PDF.</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
