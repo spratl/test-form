@@ -1,5 +1,4 @@
 // ---------- Config ----------
-const HR_EMAIL = "hr@sprautotech.com"; // TODO: replace with actual HR intake email
 const STEPS = ["Applicant & Photo","Personal Particulars","Other Particulars","Qualifications","Experience","References","Remuneration","Declaration"];
 const STORAGE_KEY = "spr_form_draft_v1";
 
@@ -816,6 +815,7 @@ function generatePdf(data){
 
   function pdfBoxedParagraph(doc, y, heading, text){
     const paddingX = 5, paddingTop = 9, paddingBottom = 6;
+    const lineHeightFactor = 4.6 / (9.5 * 0.352778); // matches the 4.6mm line spacing used for Consent
     doc.setFont(pdfFontFamily,'normal'); doc.setFontSize(9.5);
     const lines = doc.splitTextToSize(text, PDF_CONTENT_W - paddingX * 2);
     const boxHeight = paddingTop + lines.length * 4.6 + paddingBottom;
@@ -825,7 +825,7 @@ function generatePdf(data){
     doc.setFont(pdfFontFamily,'bold'); doc.setFontSize(10.5); doc.setTextColor(26,39,68);
     doc.text(heading, PDF_MARGIN + paddingX, y + 6);
     doc.setFont(pdfFontFamily,'normal'); doc.setFontSize(9.5); doc.setTextColor(30,30,30);
-    doc.text(lines, PDF_MARGIN + paddingX, y + paddingTop + 4);
+    doc.text(lines, PDF_MARGIN + paddingX, y + paddingTop + 4, { lineHeightFactor });
     return y + boxHeight + 6;
   }
 
@@ -1070,6 +1070,7 @@ function generateBlankPdfTemplate(){
 // Shared helper: boxed paragraph with static (non-data-driven) text, used by the blank template
 function pdfBoxedParagraphStatic(doc, y, heading, text){
   const paddingX = 5, paddingTop = 9, paddingBottom = 6;
+  const lineHeightFactor = 4.6 / (9.5 * 0.352778); // matches the 4.6mm line spacing used for Consent
   doc.setFont(pdfFontFamily,'normal'); doc.setFontSize(9.5);
   const lines = doc.splitTextToSize(text, PDF_CONTENT_W - paddingX * 2);
   const boxHeight = paddingTop + lines.length * 4.6 + paddingBottom;
@@ -1079,7 +1080,7 @@ function pdfBoxedParagraphStatic(doc, y, heading, text){
   doc.setFont(pdfFontFamily,'bold'); doc.setFontSize(10.5); doc.setTextColor(26,39,68);
   doc.text(heading, PDF_MARGIN + paddingX, y + 6);
   doc.setFont(pdfFontFamily,'normal'); doc.setFontSize(9.5); doc.setTextColor(30,30,30);
-  doc.text(lines, PDF_MARGIN + paddingX, y + paddingTop + 4);
+  doc.text(lines, PDF_MARGIN + paddingX, y + paddingTop + 4, { lineHeightFactor });
   return y + boxHeight + 6;
 }
 
@@ -1402,7 +1403,7 @@ document.getElementById('confirmSendBtn').addEventListener('click', () => {
   if (!pendingDoc) return;
   const statusEl = document.getElementById('statusMsg');
   pendingDoc.save(pendingFileName);
-  statusEl.innerHTML = 'PDF downloaded as <strong>' + pendingFileName + '</strong> to your device. Please email it to <strong>' + HR_EMAIL + '</strong> yourself as an attachment.';
+  statusEl.innerHTML = 'PDF downloaded as <strong>' + pendingFileName + '</strong> to your device.';
   statusEl.style.display = 'block';
   localStorage.removeItem(STORAGE_KEY);
   document.getElementById('previewOverlay').classList.remove('active');
